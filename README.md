@@ -1,16 +1,16 @@
 ## DATE:
-# Vigenere Cipher
-Vigenere Cipher using with different key values
+# Rail Fence Cipher
+Rail Fence Cipher using with different key values
 
 # AIM:
 
-To develop a simple C program to implement Vigenere Cipher.
+To develop a simple C program to implement Rail Fence Cipher.
 
 ## DESIGN STEPS:
 
 ### Step 1:
 
-Design of Vigenere Cipher algorithnm 
+Design of Rail Fence Cipher algorithnm 
 
 ### Step 2:
 
@@ -19,78 +19,151 @@ Implementation using C or pyhton code
 ### Step 3:
 
 Testing algorithm with different key values. 
+ALGORITHM DESCRIPTION:
+In the rail fence cipher, the plaintext is written downwards and diagonally on successive "rails" of an imaginary fence, then moving up when we reach the bottom rail. When we reach the top rail, the message is written downwards again until the whole plaintext is written out. The message is then read off in rows.
 
 ## PROGRAM:
-```
+``` c
 #include <stdio.h>
 #include <string.h>
-#include <ctype.h>
+#include <stdlib.h>
 
-#define MAX_LENGTH 100
+void encrypt(char str[], int rails);
+void decrypt(char str[], int rails);
 
-int main() 
-{
-    char input[MAX_LENGTH];
-    char key[MAX_LENGTH];
-    char result[MAX_LENGTH];
+int main() {
+    int choice, rails;
+    char str[1000];
 
-    printf("Enter the text to encrypt: ");
-    fgets(input, MAX_LENGTH, stdin);
-    input[strcspn(input, "\n")] = '\0'; 
+    printf("Enter a Secret Message: ");
+    fgets(str, sizeof(str), stdin);  
+    str[strcspn(str, "\n")] = '\0'; 
 
-    printf("Enter the key: ");
-    fgets(key, MAX_LENGTH, stdin);
-    key[strcspn(key, "\n")] = '\0'; 
+    printf("Enter number of rails: ");
+    scanf("%d", &rails);
 
-    int inputLength = strlen(input);
-    int keyLength = strlen(key);
+    printf("Choose an option:\n1. Encrypt\n2. Decrypt\n");
+    scanf("%d", &choice);
 
-    for (int i = 0, j = 0; i < inputLength; ++i) 
-    {
-        char currentChar = input[i];
-
-        if (isalpha(currentChar))
-        {
-            int shift = toupper(key[j % keyLength]) - 'A';
-            int base = isupper(currentChar) ? 'A' : 'a';
-
-            result[i] = ((currentChar - base + shift + 26) % 26) + base;
-            ++j;
-        }
-        else
-        {
-            result[i] = currentChar;
-        }
+    if (choice == 1) {
+        encrypt(str, rails);
+    } else if (choice == 2) {
+        decrypt(str, rails);
+    } else {
+        printf("Invalid choice.\n");
     }
-
-    result[inputLength] = '\0';
-    printf("Encrypted text: %s\n", result);
-
-    for (int i = 0, j = 0; i < inputLength; ++i) 
-    {
-        char currentChar = result[i];
-
-        if (isalpha(currentChar)) 
-        {
-            int shift = toupper(key[j % keyLength]) - 'A';
-            int base = isupper(currentChar) ? 'A' : 'a';
-
-            result[i] = ((currentChar - base - shift + 26) % 26) + base;
-            ++j;
-        }
-    }
-
-    result[inputLength] = '\0';
-    printf("Decrypted text: %s\n", result);
 
     return 0;
 }
-```
 
+void encrypt(char str[], int rails) {
+    int i, j, len, count;
+    int code[100][1000]; 
+
+    len = strlen(str);
+
+    for (i = 0; i < rails; i++) {
+        for (j = 0; j < len; j++) {
+            code[i][j] = 0;
+        }
+    }
+
+    count = 0;  
+    j = 0;      
+
+    while (j < len) {
+        if (count % 2 == 0) {
+            for (i = 0; i < rails && j < len; i++) {
+                code[i][j] = (int)str[j]; 
+                j++;
+            }
+        } else {
+            for (i = rails - 2; i > 0 && j < len; i--) {
+                code[i][j] = (int)str[j]; 
+                j++;
+            }
+        }
+        count++;
+    }
+
+    printf("\nEncrypted Message: ");
+    for (i = 0; i < rails; i++) {
+        for (j = 0; j < len; j++) {
+            if (code[i][j] != 0) {
+                printf("%c", code[i][j]);
+            }
+        }
+    }
+    printf("\n");
+}
+
+void decrypt(char str[], int rails) {
+    int i, j, len, count;
+    int code[100][1000];
+    char decrypted[1000];
+
+    len = strlen(str);
+
+    for (i = 0; i < rails; i++) {
+        for (j = 0; j < len; j++) {
+            code[i][j] = 0;
+        }
+    }
+
+    count = 0;
+    j = 0;
+    int index = 0;
+
+    while (j < len) {
+        if (count % 2 == 0) {
+            for (i = 0; i < rails && j < len; i++) {
+                code[i][j] = 1; 
+                j++;
+            }
+        } else {
+            for (i = rails - 2; i > 0 && j < len; i--) {
+                code[i][j] = 1; 
+                j++;
+            }
+        }
+        count++;
+    }
+
+    for (i = 0; i < rails; i++) {
+        for (j = 0; j < len; j++) {
+            if (code[i][j] == 1) {
+                code[i][j] = (int)str[index++];
+            }
+        }
+    }
+
+    index = 0;
+    j = 0;
+
+    while (j < len) {
+        if (count % 2 == 0) {
+            for (i = 0; i < rails && j < len; i++) {
+                decrypted[j] = (char)code[i][j];
+                j++;
+            }
+        } else {
+            for (i = rails - 2; i > 0 && j < len; i--) {
+                decrypted[j] = (char)code[i][j];
+                j++;
+            }
+        }
+        count++;
+    }
+    decrypted[j] = '\0';
+
+    printf("\nDecrypted Message: %s\n", decrypted);
+}
+
+```
 ## OUTPUT:
-![Screenshot 2024-10-21 085516](https://github.com/user-attachments/assets/f77701a7-034e-4fa5-87ac-d178ae75923f)
+![image](https://github.com/user-attachments/assets/0dc29635-787c-46c3-9406-23742d7bbf32)
 
 
 
 ## RESULT:
-The program is executed successfully
+The Rail Fence Cipher program is executed successfully
